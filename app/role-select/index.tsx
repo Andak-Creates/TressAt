@@ -46,7 +46,7 @@ const index = () => {
         <Text className="text-white text-center text-[30px] font-semibold">
           Join Our Community
         </Text>
-        <Text className="text-white text-center mt-[10px] text-[16px] font-extralight">
+        <Text className=" text-center mt-[10px] defaultText font-extralight">
           Select your role to get started on your beauty journey.
         </Text>
 
@@ -54,7 +54,7 @@ const index = () => {
         {/* Customer */}
         <TouchableOpacity
           onPress={() => handleSelect("customer")}
-          className="py-[30px] w-full md:w-[50%] px-[20px] rounded-3xl bg-white mt-[30px]"
+          className="py-[20px] w-full md:w-[50%] px-[20px] rounded-3xl bg-white mt-[30px]"
         >
           <View className="flex flex-row justify-between items-center gap-6">
             {/* Avatar */}
@@ -78,7 +78,7 @@ const index = () => {
         {/* Provider */}
         <TouchableOpacity
           onPress={() => handleSelect("provider")}
-          className="py-[30px] px-[20px] w-full md:w-[50%] rounded-3xl bg-white mt-[30px] overflow-hidden"
+          className="py-[20px] px-[20px] w-full md:w-[50%] rounded-3xl bg-white mt-[30px] overflow-hidden"
         >
           <View className="flex flex-row justify-between items-center gap-2 w-full">
             {/* Avatar */}

@@ -5,3 +5,11 @@
 * {
   overflow-x: hidden;
 }
+
+.defaultText {
+  @apply text-white text-[16px];
+}
+
+.labelInput {
+  @apply flex flex-col gap-2;
+}
