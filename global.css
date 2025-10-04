@@ -13,3 +13,7 @@
 .labelInput {
   @apply flex flex-col gap-2;
 }
+
+.profileIcon {
+  @apply bg-[#aaaaaa62] rounded-xl w-[50px] h-[50px] flex items-center justify-center;
+}

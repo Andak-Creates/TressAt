@@ -4,8 +4,8 @@
     "slug": "TressAt",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/tressatLogo.png",
-    "scheme": "TressAt",
+
+    "scheme": "tressat",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -13,8 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/tressatLogo.png",
-        "backgroundColor": "black"
+        "foregroundImage": "./assets/images/tress-splash.png"
       },
       "edgeToEdgeEnabled": true
     },
@@ -28,10 +27,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/tressatLogo.png",
+          "image": "./assets/images/tress-splash.png",
           "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "black"
+          "resizeMode": "cover"
         }
       ]
     ],

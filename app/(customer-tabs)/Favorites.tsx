@@ -1,18 +1,18 @@
 import React from "react";
 import { ImageBackground, Text, View } from "react-native";
 
-const Bookings = () => {
+const Favorites = () => {
   return (
     <ImageBackground
-      source={require("@/assets/images/tress-bg.png")}
       className="flex-1"
+      source={require("@/assets/images/tress-bg.png")}
       resizeMode="cover"
     >
       <View className="flex-1 justify-center items-center">
-        <Text className="text-white">Bookings</Text>
+        <Text className="text-white">Favorite Providers</Text>
       </View>
     </ImageBackground>
   );
 };
 
-export default Bookings;
+export default Favorites;

@@ -13,7 +13,7 @@ const Intro = () => {
   const router = useRouter();
   return (
     <ImageBackground
-      source={require("@/assets/images/bigBackground.png")}
+      source={require("@/assets/images/tress-bg.png")}
       className="h-full w-full"
       resizeMode="cover"
     >

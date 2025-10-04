@@ -4,7 +4,7 @@ import { ImageBackground, ScrollView, Text } from "react-native";
 const ChooseType = () => {
   return (
     <ImageBackground
-      source={require("@/assets/images/bigBackground.png")}
+      source={require("@/assets/images/tress-bg.png")}
       className="h-[100vh] w-full px-[30px] py-[50px]"
     >
       <ScrollView>

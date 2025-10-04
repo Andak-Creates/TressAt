@@ -21,7 +21,7 @@ export default function CustomerTabsLayout() {
     >
       {/* Home */}
       <Tabs.Screen
-        name="home"
+        name="Home"
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
@@ -32,7 +32,7 @@ export default function CustomerTabsLayout() {
 
       {/* Bookings */}
       <Tabs.Screen
-        name="bookings"
+        name="Bookings"
         options={{
           title: "Bookings",
           tabBarIcon: ({ color }) => (
@@ -41,9 +41,20 @@ export default function CustomerTabsLayout() {
         }}
       />
 
+      {/* favorites */}
+      <Tabs.Screen
+        name="Favorites"
+        options={{
+          title: "Favorites",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome6 name="bookmark" size={20} color={color} />
+          ),
+        }}
+      />
+
       {/* Profile */}
       <Tabs.Screen
-        name="profile"
+        name="Profile"
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => (

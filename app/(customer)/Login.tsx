@@ -42,7 +42,7 @@ const Login = () => {
 
   return (
     <ImageBackground
-      source={require("@/assets/images/bigBackground.png")}
+      source={require("@/assets/images/tress-bg.png")}
       className="h-full w-full object-cover pt-[100px] px-[30px]"
     >
       <KeyboardAvoidingView>
@@ -89,6 +89,19 @@ const Login = () => {
                 {loading ? "Logging in..." : "Login"}
               </Text>
             </TouchableOpacity>
+
+            <View className="mt-[20px]">
+              <Text className="defaultText">
+                Don't have an account?{" "}
+                <Text
+                  onPress={() => router.push("/(customer)/SignUp")}
+                  className="text-blue-500 
+                        cursor-pointer"
+                >
+                  Sign Up
+                </Text>{" "}
+              </Text>
+            </View>
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
