@@ -143,7 +143,7 @@ const Profile = () => {
             </View>
           </View>
         ) : (
-          <View className="mb-5">
+          <View className="mb-5 flex flex-col items-center justify-center">
             <View className="flex-row items-center gap-2 justify-center">
               <Text className="text-[30px] font-semibold text-white text-center">
                 {fullName || "User"}
@@ -165,7 +165,7 @@ const Profile = () => {
         </View>
 
         {/* Account Section */}
-        <View className="border border-white w-full rounded-lg p-4 mb-[50px]">
+        <View className="border border-white w-full rounded-lg p-2 mb-[50px]">
           <Text className="text-[20px] text-white mb-3 font-semibold">
             Account
           </Text>

@@ -8,7 +8,7 @@ const ChooseType = () => {
       className="h-[100vh] w-full px-[30px] py-[50px]"
     >
       <ScrollView>
-        <Text>Choose your account type</Text>
+        <Text className="text-white">Choose your account type</Text>
       </ScrollView>
     </ImageBackground>
   );
