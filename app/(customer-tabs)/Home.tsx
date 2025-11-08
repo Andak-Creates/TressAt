@@ -38,7 +38,7 @@ export default function Home() {
   const [duration, setDuration] = useState<number | null>(null);
   const [useFallback, setUseFallback] = useState(false);
 
-  const GOOGLE_API_KEY = "AIzaSyDS_P6RG3iOP4FX491VRl5N9CnrE4it674";
+  const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY!;
   const costPerKm = 200; // ₦200 per km example
 
   // Get user's current location
