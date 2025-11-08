@@ -8,14 +8,16 @@ import {
   ImageBackground,
   Keyboard,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Text,
-  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import MapView, { Marker } from "react-native-maps";
+import MapViewDirections from "react-native-maps-directions";
 
 type Provider = {
   id: string;
@@ -28,10 +30,18 @@ export default function Home() {
     null
   );
   const [providers, setProviders] = useState<Provider[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [distance, setDistance] = useState<number | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
+  const [useFallback, setUseFallback] = useState(false);
 
-  // Get user's current location on mount
+  const GOOGLE_API_KEY = "AIzaSyDS_P6RG3iOP4FX491VRl5N9CnrE4it674";
+  const costPerKm = 200; // ₦200 per km example
+
+  // Get user's current location
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -45,7 +55,7 @@ export default function Home() {
     })();
   }, []);
 
-  // Fetch nearby providers (using RPC function in Supabase)
+  // Fetch nearby providers
   const fetchProviders = async (lat: number, lng: number) => {
     setLoading(true);
 
@@ -56,40 +66,52 @@ export default function Home() {
 
     if (error) {
       console.error("Error fetching providers:", error);
-    } else {
-      const parsed = data.map((p: any) => ({
-        ...p,
-        location: {
-          lat: p.location.coordinates[1],
-          lng: p.location.coordinates[0],
-        },
-      }));
-      setProviders(parsed);
+      setProviders([]); // prevent undefined crash
+      setLoading(false);
+      return;
     }
+
+    // Defensive checks to prevent undefined issues
+    if (!data || !Array.isArray(data)) {
+      console.warn("No valid data returned from get_nearby_providers:", data);
+      setProviders([]);
+      setLoading(false);
+      return;
+    }
+
+    const parsed = data.map((p: any) => ({
+      ...p,
+      location: {
+        lat: p?.location?.coordinates?.[1] ?? 0,
+        lng: p?.location?.coordinates?.[0] ?? 0,
+      },
+    }));
+
+    setProviders(parsed);
     setLoading(false);
   };
-
-  // Refetch providers whenever location changes
+  // Refetch when location changes
   useEffect(() => {
     if (location) {
       fetchProviders(location.lat, location.lng);
     }
   }, [location]);
 
-  // Handle location search
-  const handleSearch = async () => {
-    if (!search.trim()) return;
-
+  // Fallback manual geocoding (if Google fails)
+  const handleManualSearch = async (text: string) => {
     try {
-      const results = await Location.geocodeAsync(search);
+      const results = await Location.geocodeAsync(text);
       if (results.length > 0) {
         const { latitude, longitude } = results[0];
         setLocation({ lat: latitude, lng: longitude });
+        setSelectedProvider(null);
+        setDistance(null);
+        setDuration(null);
       } else {
-        console.log("No results for that search term.");
+        console.log("No results found for fallback search.");
       }
     } catch (err) {
-      console.error("Geocoding error:", err);
+      console.error("Fallback geocoding error:", err);
     }
   };
 
@@ -101,6 +123,8 @@ export default function Home() {
       </View>
     );
   }
+
+  const estimatedFare = distance ? distance * costPerKm : null;
 
   return (
     <ImageBackground
@@ -114,25 +138,64 @@ export default function Home() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={{ flex: 1 }}>
-            {/* Map */}
+            {/* Map Section */}
             <View
               className="h-[500px] rounded-lg overflow-hidden"
               pointerEvents="box-none"
             >
-              {/* Search bar - positioned above map */}
-              <View className="absolute top-12 left-1/2 translate-x-[-50%] w-[300px] z-20 bg-white rounded-lg shadow px-3 py-2 flex-row justify-center items-center">
-                <TextInput
-                  placeholder="Search a location..."
-                  value={search}
-                  onChangeText={setSearch}
-                  onSubmitEditing={handleSearch}
-                  className="flex-1 text-base"
-                />
-                <TouchableOpacity onPress={handleSearch}>
-                  <Text className="text-blue-500 font-semibold">Go</Text>
-                </TouchableOpacity>
-              </View>
+              {/* Search Box */}
+              {!useFallback ? (
+                <View className="absolute top-12 w-[90%] self-center z-20">
+                  <GooglePlacesAutocomplete
+                    placeholder="Search for a place..."
+                    fetchDetails={true}
+                    onFail={(err) => {
+                      console.log("Google Places error:", err);
+                      setUseFallback(true);
+                    }}
+                    onPress={(data, details = null) => {
+                      console.log(data, details);
+                      if (details) {
+                        const { lat, lng } = details.geometry.location;
+                        setLocation({ lat, lng });
+                        setSelectedProvider(null);
+                        setDistance(null);
+                        setDuration(null);
+                      }
+                    }}
+                    query={{
+                      key: GOOGLE_API_KEY,
+                      language: "en",
+                    }}
+                    styles={{
+                      textInput: {
+                        backgroundColor: "#fff",
+                        borderRadius: 8,
+                        fontSize: 16,
+                        paddingHorizontal: 10,
+                        height: 44,
+                      },
+                      container: { flex: 0 },
+                      listView: { backgroundColor: "white" },
+                    }}
+                  />
+                </View>
+              ) : (
+                // Fallback simple input
+                <View className="absolute top-12 w-[90%] self-center z-20 bg-white p-2 rounded-lg flex-row justify-between items-center shadow">
+                  <Text className="text-gray-700 flex-1">
+                    Fallback search (Google offline)
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleManualSearch("Lagos, Nigeria")}
+                    className="bg-blue-500 rounded-md px-3 py-1"
+                  >
+                    <Text className="text-white">Try Lagos</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
+              {/* Map */}
               <MapView
                 style={{ flex: 1 }}
                 region={{
@@ -141,8 +204,8 @@ export default function Home() {
                   latitudeDelta: 0.05,
                   longitudeDelta: 0.05,
                 }}
-                showsUserLocation={true}
-                showsMyLocationButton={true}
+                showsUserLocation
+                showsMyLocationButton
               >
                 {providers.map((p) => (
                   <Marker
@@ -152,13 +215,72 @@ export default function Home() {
                       longitude: p.location.lng,
                     }}
                     title={p.business_name}
-                    pinColor="red"
+                    pinColor={selectedProvider?.id === p.id ? "blue" : "red"}
+                    onPress={() => {
+                      setSelectedProvider(p);
+                      setDistance(null);
+                      setDuration(null);
+                    }}
                   />
                 ))}
+
+                {selectedProvider && (
+                  <MapViewDirections
+                    origin={{
+                      latitude: location.lat,
+                      longitude: location.lng,
+                    }}
+                    destination={{
+                      latitude: selectedProvider.location.lat,
+                      longitude: selectedProvider.location.lng,
+                    }}
+                    apikey={GOOGLE_API_KEY}
+                    strokeWidth={4}
+                    strokeColor="blue"
+                    onError={(err) =>
+                      console.log("Directions error:", err.message)
+                    }
+                    onReady={(result) => {
+                      setDistance(result.distance);
+                      setDuration(result.duration);
+                    }}
+                  />
+                )}
               </MapView>
+
+              {/* Fare Card */}
+              {selectedProvider && distance && (
+                <View className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-white px-5 py-3 rounded-2xl shadow-lg w-[90%]">
+                  <Text className="text-lg font-semibold text-gray-800 text-center mb-2">
+                    {selectedProvider.business_name}
+                  </Text>
+                  <Text className="text-gray-600 text-center">
+                    Distance: {distance.toFixed(2)} km
+                  </Text>
+                  <Text className="text-gray-600 text-center">
+                    Duration: {duration?.toFixed(0)} mins
+                  </Text>
+                  <Text className="text-blue-600 font-bold text-center mt-2">
+                    Estimated Fare: ₦{estimatedFare?.toFixed(0)}
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() =>
+                      Linking.openURL(
+                        `https://www.google.com/maps/dir/?api=1&destination=${selectedProvider.location.lat},${selectedProvider.location.lng}`
+                      )
+                    }
+                    className="mt-3 bg-blue-500 rounded-lg py-2"
+                  >
+                    <Text className="text-white font-bold text-center">
+                      Get Directions
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
 
-            {/* Provider list */}
+            {/* Provider List */}
             <View className="flex-1 bg-white px-4 pt-4">
               <Text className="text-xl font-bold mb-4">Providers</Text>
 
@@ -183,7 +305,14 @@ export default function Home() {
                   data={providers}
                   keyExtractor={(item) => item.id}
                   renderItem={({ item }) => (
-                    <TouchableOpacity className="p-4 mb-3 rounded-xl bg-gray-50 border border-gray-200">
+                    <TouchableOpacity
+                      onPress={() => setSelectedProvider(item)}
+                      className={`p-4 mb-3 rounded-xl border ${
+                        selectedProvider?.id === item.id
+                          ? "border-blue-400 bg-blue-50"
+                          : "border-gray-200 bg-gray-50"
+                      }`}
+                    >
                       <Text className="font-bold text-base mb-1">
                         {item.business_name}
                       </Text>

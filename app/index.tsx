@@ -23,7 +23,7 @@ const index = () => {
     if (role === "customer") {
       router.push("/(customer)/Intro");
     } else if (role === "provider") {
-      router.push("/(provider)/ChooseType");
+      router.push("/(provider)/(auth)/ChooseRole");
     }
   };
 

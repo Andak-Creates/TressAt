@@ -4,18 +4,33 @@
     "slug": "TressAt",
     "version": "1.0.0",
     "orientation": "portrait",
-
     "scheme": "tressat",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/tress-splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "splash": {
+        "image": "./assets/images/tress-splash.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#ffffff"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/tress-splash.png"
+        "foregroundImage": "./assets/images/tress-splash.png",
+        "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "splash": {
+        "image": "./assets/images/tress-splash.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.TressAt"
     },
     "web": {
       "bundler": "metro",
@@ -24,14 +39,9 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/tress-splash.png",
-          "imageWidth": 200,
-          "resizeMode": "cover"
-        }
-      ]
+      "expo-splash-screen",
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

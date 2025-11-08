@@ -5,7 +5,6 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
@@ -62,15 +61,13 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <AuthProvider>
-          <BottomSheetModalProvider>
-            <NavigationGuard>
-              <Stack screenOptions={{ headerShown: false }} />
-            </NavigationGuard>
-          </BottomSheetModalProvider>
-        </AuthProvider>
-      </SafeAreaProvider>
+      <AuthProvider>
+        <BottomSheetModalProvider>
+          <NavigationGuard>
+            <Stack screenOptions={{ headerShown: false }} />
+          </NavigationGuard>
+        </BottomSheetModalProvider>
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 }
