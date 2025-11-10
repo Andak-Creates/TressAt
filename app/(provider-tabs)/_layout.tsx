@@ -43,11 +43,11 @@ export default function CustomerTabsLayout() {
 
       {/* favorites */}
       <Tabs.Screen
-        name="Favorites"
+        name="Messages"
         options={{
-          title: "Favorites",
+          title: "Messages",
           tabBarIcon: ({ color }) => (
-            <FontAwesome6 name="bookmark" size={20} color={color} />
+            <FontAwesome6 name="message" size={20} color={color} />
           ),
         }}
       />
