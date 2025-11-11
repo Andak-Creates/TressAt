@@ -62,6 +62,16 @@ export default function CustomerTabsLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="Settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome6 name="house" size={20} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
