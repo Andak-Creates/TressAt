@@ -31,8 +31,6 @@ interface Profile {
   full_name: string;
   avatar_url?: string | null;
   phone?: string | null;
-  email?: string | null;
-  bio?: string | null;
 }
 
 interface Service {
@@ -41,6 +39,7 @@ interface Service {
   description: string;
   price: number;
   duration: number;
+  is_active: boolean;
 }
 
 interface ProviderState {
@@ -98,7 +97,7 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
     try {
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, phone, email, bio")
+        .select("full_name, avatar_url, phone")
         .eq("id", currentProviderId)
         .single();
 
@@ -143,7 +142,7 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from("services")
-        .select("id, name, description, price, duration")
+        .select("id, name, description, price, duration, is_active")
         .eq("provider_id", currentProviderId)
         .order("name", { ascending: true });
 
@@ -201,7 +200,7 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
       // Get total earnings from completed bookings
       const { data: completedBookings, error: earningsError } = await supabase
         .from("bookings")
-        .select("price")
+        .select("price, total_price")
         .eq("provider_id", currentProviderId)
         .eq("status", "completed");
 
@@ -209,7 +208,8 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
 
       const totalEarnings =
         completedBookings?.reduce(
-          (sum, booking) => sum + (Number(booking.price) || 0),
+          (sum, booking) =>
+            sum + (Number(booking.total_price || booking.price) || 0),
           0
         ) || 0;
 

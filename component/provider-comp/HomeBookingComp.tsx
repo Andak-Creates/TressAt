@@ -11,16 +11,26 @@ interface Customer {
   phone?: string | null;
 }
 
+interface BookingItem {
+  id: string;
+  service_name: string;
+  service_price: number;
+  person_number: number;
+}
+
 interface Booking {
   id: string;
   customer_id: string;
   provider_id: string;
-  service: string;
-  price: number;
+  service?: string; // Old format - optional
+  price?: number; // Old format - optional
+  total_price?: number; // New format
   status: string;
   scheduled_at: string;
   created_at: string;
+  number_of_people?: number; // New format
   customer: Customer;
+  booking_items?: BookingItem[]; // New format
 }
 
 interface HomeBookingCompProps {
@@ -30,6 +40,24 @@ interface HomeBookingCompProps {
 // ✅ Accept booking as a prop
 const HomeBookingComp = ({ booking }: HomeBookingCompProps) => {
   const router = useRouter();
+
+  // Get service display text
+  const getServiceDisplay = () => {
+    // Check if new format with booking_items exists
+    if (booking.booking_items && booking.booking_items.length > 0) {
+      if (booking.booking_items.length === 1) {
+        return booking.booking_items[0].service_name;
+      }
+      return `${booking.booking_items.length} services`;
+    }
+    // Fallback to old format
+    return booking.service || "Service";
+  };
+
+  // Get price display
+  const getPrice = () => {
+    return booking.total_price || booking.price || 0;
+  };
 
   // Format time from scheduled_at
   const formatTime = (dateString: string) => {
@@ -75,11 +103,15 @@ const HomeBookingComp = ({ booking }: HomeBookingCompProps) => {
         {/* Booking details */}
         <View className="flex-1">
           <Text className="text-[16px] font-semibold">
-            {booking.service} with {booking.customer.full_name}
+            {getServiceDisplay()} with {booking.customer.full_name}
           </Text>
           <Text className="text-gray-500 text-sm">
             {formatTime(booking.scheduled_at)} -{" "}
             {getEndTime(booking.scheduled_at)}
+          </Text>
+          {/* Show price */}
+          <Text className="text-green-600 font-semibold text-sm mt-1">
+            ₦{getPrice().toLocaleString()}
           </Text>
         </View>
       </View>

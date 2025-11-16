@@ -1,4 +1,3 @@
-// Home.tsx
 import OverviewCard from "@/component/OverviewCard";
 import HomeBookingComp from "@/component/provider-comp/HomeBookingComp";
 import { useProviderStore } from "@/lib/store/useProviderStore";
@@ -54,8 +53,8 @@ const Home = () => {
   }
 
   return (
-    <View>
-      <View className="pt-[50px] pb-[30px] relative bg-[#e4e4e4]">
+    <View className="pt-[20px]">
+      <View className="py-[30px] relative bg-[#e4e4e4]">
         <Text className="text-center text-[18px] font-semibold">Dashboard</Text>
       </View>
       <ScrollView
