@@ -68,7 +68,7 @@ export default function CustomerTabsLayout() {
         options={{
           title: "Settings",
           tabBarIcon: ({ color }) => (
-            <FontAwesome6 name="house" size={20} color={color} />
+            <FontAwesome6 name="settings" size={20} color={color} />
           ),
         }}
       />

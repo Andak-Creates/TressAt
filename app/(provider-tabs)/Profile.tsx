@@ -1,14 +1,17 @@
 import { useProviderStore } from "@/lib/store/useProviderStore";
 import { supabase } from "@/lib/supabase";
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
   FlatList,
   Image,
+  KeyboardAvoidingView,
+  Linking,
   Modal,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -37,6 +40,9 @@ const Profile = () => {
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Bio state
+  const [bioText, setBioText] = useState("");
 
   // Service Modal State
   const [showServiceModal, setShowServiceModal] = useState(false);
@@ -72,6 +78,13 @@ const Profile = () => {
     }
   }, [currentProviderId]);
 
+  // Initialize bio when profile loads
+  useEffect(() => {
+    if (profile?.bio) {
+      setBioText(profile.bio);
+    }
+  }, [profile]);
+
   const handleScroll = (event: any) => {
     const slideIndex = Math.round(
       event.nativeEvent.contentOffset.x / SLIDE_WIDTH
@@ -87,9 +100,23 @@ const Profile = () => {
     setIsEditMode(false);
   };
 
-  const handleSaveProfile = () => {
-    Alert.alert("Saved!", "Your profile has been updated");
-    setIsEditMode(false);
+  const handleSaveProfile = async () => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          bio: bioText || null,
+        })
+        .eq("id", currentProviderId);
+
+      if (error) throw error;
+
+      Alert.alert("Saved!", "Your profile has been updated");
+      setIsEditMode(false);
+      loadProfileData(); // Refresh data
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
   };
 
   // ===== PORTFOLIO FUNCTIONS =====
@@ -99,8 +126,21 @@ const Profile = () => {
 
     if (status !== "granted") {
       Alert.alert(
-        "Permission needed",
-        "Please allow access to your photos to upload a profile picture."
+        "Permission Required",
+        "Please go to Settings > TressAt > Photos and enable access",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Open Settings",
+            onPress: () => {
+              if (Platform.OS === "ios") {
+                Linking.openURL("app-settings:");
+              } else {
+                Linking.openSettings();
+              }
+            },
+          },
+        ]
       );
       return;
     }
@@ -473,6 +513,34 @@ const Profile = () => {
             {providerName || "Provider"}
           </Text>
 
+          {/* Bio Section */}
+          {!isEditMode ? (
+            profile?.bio ? (
+              <Text className="text-gray-600 text-center mt-2 px-6">
+                {profile.bio}
+              </Text>
+            ) : (
+              <Text className="text-gray-400 text-center mt-2 italic text-sm">
+                No bio yet
+              </Text>
+            )
+          ) : (
+            <View className="w-full px-4 mt-3">
+              <Text className="text-gray-700 mb-1 font-semibold text-sm">
+                Bio
+              </Text>
+              <TextInput
+                value={bioText}
+                onChangeText={setBioText}
+                placeholder="Tell customers about yourself..."
+                multiline
+                numberOfLines={3}
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                textAlignVertical="top"
+              />
+            </View>
+          )}
+
           {/* Stats */}
           <View className="flex-row gap-8 mt-6">
             <View className="items-center">
@@ -738,95 +806,101 @@ const Profile = () => {
       </ScrollView>
 
       {/* Service Modal */}
+      {/* Service Modal */}
       <Modal
         visible={showServiceModal}
         animationType="slide"
         transparent={true}
       >
-        <View className="flex-1 justify-end bg-black/50">
-          <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
-            <Text className="text-2xl font-bold mb-6">
-              {editingService ? "Edit Service" : "Add New Service"}
-            </Text>
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View className="flex-1 justify-end bg-black/50">
+            <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
+              <Text className="text-2xl font-bold mb-6">
+                {editingService ? "Edit Service" : "Add New Service"}
+              </Text>
 
-            <ScrollView>
-              <View className="gap-4">
-                <View>
-                  <Text className="text-gray-700 mb-2 font-semibold">
-                    Service Name *
-                  </Text>
-                  <TextInput
-                    value={serviceName}
-                    onChangeText={setServiceName}
-                    placeholder="e.g., Beard Trim"
-                    className="border border-gray-300 rounded-lg p-3 text-base"
-                  />
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View className="gap-4">
+                  <View>
+                    <Text className="text-gray-700 mb-2 font-semibold">
+                      Service Name *
+                    </Text>
+                    <TextInput
+                      value={serviceName}
+                      onChangeText={setServiceName}
+                      placeholder="e.g., Beard Trim"
+                      className="border border-gray-300 rounded-lg p-3 text-base"
+                    />
+                  </View>
+
+                  <View>
+                    <Text className="text-gray-700 mb-2 font-semibold">
+                      Price (₦) *
+                    </Text>
+                    <TextInput
+                      value={servicePrice}
+                      onChangeText={setServicePrice}
+                      placeholder="e.g., 500"
+                      keyboardType="numeric"
+                      className="border border-gray-300 rounded-lg p-3 text-base"
+                    />
+                  </View>
+
+                  <View>
+                    <Text className="text-gray-700 mb-2 font-semibold">
+                      Duration (minutes) *
+                    </Text>
+                    <TextInput
+                      value={serviceDuration}
+                      onChangeText={setServiceDuration}
+                      placeholder="e.g., 30"
+                      keyboardType="numeric"
+                      className="border border-gray-300 rounded-lg p-3 text-base"
+                    />
+                  </View>
+
+                  <View>
+                    <Text className="text-gray-700 mb-2 font-semibold">
+                      Description (Optional)
+                    </Text>
+                    <TextInput
+                      value={serviceDescription}
+                      onChangeText={setServiceDescription}
+                      placeholder="Describe your service..."
+                      multiline
+                      numberOfLines={3}
+                      className="border border-gray-300 rounded-lg p-3 text-base"
+                      textAlignVertical="top"
+                    />
+                  </View>
                 </View>
 
-                <View>
-                  <Text className="text-gray-700 mb-2 font-semibold">
-                    Price (₦) *
-                  </Text>
-                  <TextInput
-                    value={servicePrice}
-                    onChangeText={setServicePrice}
-                    placeholder="e.g., 500"
-                    keyboardType="numeric"
-                    className="border border-gray-300 rounded-lg p-3 text-base"
-                  />
+                <View className="flex-row gap-3 mt-6 mb-4">
+                  <TouchableOpacity
+                    onPress={closeServiceModal}
+                    className="flex-1 bg-gray-200 py-4 rounded-lg"
+                  >
+                    <Text className="text-gray-700 text-center font-semibold text-base">
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={saveService}
+                    disabled={saving}
+                    className="flex-1 bg-green-500 py-4 rounded-lg"
+                  >
+                    <Text className="text-white text-center font-semibold text-base">
+                      {saving ? "Saving..." : "Save"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-
-                <View>
-                  <Text className="text-gray-700 mb-2 font-semibold">
-                    Duration (minutes) *
-                  </Text>
-                  <TextInput
-                    value={serviceDuration}
-                    onChangeText={setServiceDuration}
-                    placeholder="e.g., 30"
-                    keyboardType="numeric"
-                    className="border border-gray-300 rounded-lg p-3 text-base"
-                  />
-                </View>
-
-                <View>
-                  <Text className="text-gray-700 mb-2 font-semibold">
-                    Description (Optional)
-                  </Text>
-                  <TextInput
-                    value={serviceDescription}
-                    onChangeText={setServiceDescription}
-                    placeholder="Describe your service..."
-                    multiline
-                    numberOfLines={3}
-                    className="border border-gray-300 rounded-lg p-3 text-base"
-                    textAlignVertical="top"
-                  />
-                </View>
-              </View>
-
-              <View className="flex-row gap-3 mt-6">
-                <TouchableOpacity
-                  onPress={closeServiceModal}
-                  className="flex-1 bg-gray-200 py-4 rounded-lg"
-                >
-                  <Text className="text-gray-700 text-center font-semibold text-base">
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={saveService}
-                  disabled={saving}
-                  className="flex-1 bg-green-500 py-4 rounded-lg"
-                >
-                  <Text className="text-white text-center font-semibold text-base">
-                    {saving ? "Saving..." : "Save"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
+              </ScrollView>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

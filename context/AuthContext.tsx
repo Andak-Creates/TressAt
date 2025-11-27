@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { useRouter } from "expo-router";
-import React, {
+import {
   createContext,
   ReactNode,
   useContext,
@@ -221,7 +221,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       const currentUser = data.user;
-      if (!currentUser) return null;
+      if (!currentUser) throw new Error("Login failed");
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -243,7 +243,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return currentUser.id;
     } catch (err) {
       console.error("Login error:", err);
-      return null;
+      throw err; // ✅ Re-throw the error so the caller can catch it
     } finally {
       setLoading(false);
     }

@@ -2,7 +2,7 @@ import OverviewCard from "@/component/OverviewCard";
 import HomeBookingComp from "@/component/provider-comp/HomeBookingComp";
 import { useProviderStore } from "@/lib/store/useProviderStore";
 import { supabase } from "@/lib/supabase";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 const Home = () => {
@@ -53,8 +53,8 @@ const Home = () => {
   }
 
   return (
-    <View className="pt-[20px]">
-      <View className="py-[30px] relative bg-[#e4e4e4]">
+    <View className="flex-1">
+      <View className="pt-[50px] pb-[30px] relative bg-white">
         <Text className="text-center text-[18px] font-semibold">Dashboard</Text>
       </View>
       <ScrollView

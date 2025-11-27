@@ -31,6 +31,7 @@ interface Profile {
   full_name: string;
   avatar_url?: string | null;
   phone?: string | null;
+  bio?: string | null;
 }
 
 interface Service {
@@ -97,7 +98,7 @@ export const useProviderStore = create<ProviderState>((set, get) => ({
     try {
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("full_name, avatar_url, phone")
+        .select("full_name, avatar_url, phone, bio")
         .eq("id", currentProviderId)
         .single();
 

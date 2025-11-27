@@ -23,7 +23,7 @@ const index = () => {
     if (role === "customer") {
       router.push("/(customer)/Intro");
     } else if (role === "provider") {
-      router.push("/(provider)/(auth)/ChooseRole");
+      router.push("/(provider)/(auth)/LoginScreen");
     }
   };
 

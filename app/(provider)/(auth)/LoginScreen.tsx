@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 
-const Login = () => {
+const LoginScreen = () => {
   const { logIn } = useAuth();
   const router = useRouter();
 
@@ -31,8 +31,8 @@ const Login = () => {
 
     try {
       setLoading(true);
-      await logIn(email, password, "customer"); // forcing customer role here
-      router.replace("/(customer-tabs)/Home");
+      await logIn(email, password, "provider"); // forcing provider role here
+      router.replace("/(provider-tabs)/Home");
     } catch (err: any) {
       Alert.alert("Login Error", err.message);
     } finally {
@@ -94,7 +94,7 @@ const Login = () => {
               <Text className="defaultText">
                 Don't have an account?{" "}
                 <Text
-                  onPress={() => router.push("/(customer)/SignUp")}
+                  onPress={() => router.push("/(provider)/(auth)/ChooseRole")}
                   className="text-blue-500 
                         cursor-pointer"
                 >
@@ -109,4 +109,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginScreen;

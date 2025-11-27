@@ -1,10 +1,11 @@
-// Bookings.tsx (Provider Side)
 import { useProviderStore } from "@/lib/store/useProviderStore";
 import { supabase } from "@/lib/supabase";
+import { FontAwesome6 } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   RefreshControl,
   ScrollView,
   Text,
@@ -42,6 +43,8 @@ const Bookings = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const statuses = [
     { key: "all", label: "All", color: "bg-gray-500" },
@@ -170,6 +173,7 @@ const Bookings = () => {
       if (error) throw error;
 
       Alert.alert("Success", `Booking ${newStatus}`);
+      setShowDetailModal(false);
       fetchBookings();
     } catch (error: any) {
       Alert.alert("Error", error.message);
@@ -245,6 +249,19 @@ const Bookings = () => {
     return statusObj?.color || "bg-gray-500";
   };
 
+  // Get service summary for list view
+  const getServiceSummary = (items: BookingItem[]) => {
+    if (!items || items.length === 0) return "No services";
+    if (items.length === 1) return items[0].service_name;
+    return `${items.length} services`;
+  };
+
+  // Open booking detail
+  const openBookingDetail = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowDetailModal(true);
+  };
+
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#e4e4e4]">
@@ -295,7 +312,7 @@ const Bookings = () => {
         </ScrollView>
       </View>
 
-      {/* Bookings List */}
+      {/* Bookings List - SIMPLE CARDS */}
       <ScrollView
         className="flex-1"
         refreshControl={
@@ -303,29 +320,23 @@ const Bookings = () => {
         }
       >
         {filteredBookings.length > 0 ? (
-          <View className="p-5 gap-4">
+          <View className="p-5 gap-3">
             {filteredBookings.map((booking) => (
-              <View
+              <TouchableOpacity
                 key={booking.id}
-                className="bg-white rounded-xl p-4 border border-gray-200"
+                onPress={() => openBookingDetail(booking)}
+                className="bg-white rounded-xl p-4 border border-gray-200 flex-row justify-between items-center"
               >
-                {/* Customer Info */}
-                <View className="flex-row items-center mb-3">
-                  <View className="w-12 h-12 rounded-full bg-green-500 items-center justify-center mr-3">
-                    <Text className="text-white text-lg font-bold">
-                      {booking.customer.full_name.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-lg font-bold text-gray-800">
-                      {booking.customer.full_name}
-                    </Text>
-                    <Text className="text-gray-500 text-sm">
-                      {booking.customer.phone}
-                    </Text>
-                  </View>
+                {/* Left side - Customer & Service */}
+                <View className="flex-1">
+                  <Text className="text-lg font-bold text-gray-800">
+                    {booking.customer.full_name}
+                  </Text>
+                  <Text className="text-gray-600 text-sm mt-1">
+                    {getServiceSummary(booking.booking_items)}
+                  </Text>
                   <View
-                    className={`px-3 py-1 rounded-full ${getStatusColor(
+                    className={`mt-2 self-start px-2 py-1 rounded-full ${getStatusColor(
                       booking.status
                     )}`}
                   >
@@ -335,97 +346,19 @@ const Bookings = () => {
                   </View>
                 </View>
 
-                {/* Date & Time */}
-                <View className="bg-gray-50 p-3 rounded-lg mb-3">
-                  <Text className="text-gray-600 text-sm font-semibold mb-1">
-                    📅 {formatDate(booking.scheduled_at)}
+                {/* Right side - Price & Arrow */}
+                <View className="items-end">
+                  <Text className="text-green-600 font-bold text-lg">
+                    ₦{booking.total_price.toLocaleString()}
                   </Text>
-                  <Text className="text-gray-600 text-sm">
-                    👥 {booking.number_of_people}{" "}
-                    {booking.number_of_people > 1 ? "people" : "person"}
-                  </Text>
+                  <FontAwesome6
+                    name="chevron-right"
+                    size={16}
+                    color="#999"
+                    style={{ marginTop: 8 }}
+                  />
                 </View>
-
-                {/* Services */}
-                <View className="mb-3">
-                  <Text className="text-gray-700 font-semibold mb-2">
-                    Services:
-                  </Text>
-                  {booking.booking_items && booking.booking_items.length > 0 ? (
-                    booking.booking_items.map((item, index) => (
-                      <View
-                        key={item.id}
-                        className="flex-row justify-between py-1"
-                      >
-                        <Text className="text-gray-600 text-sm">
-                          Person {item.person_number}: {item.service_name}
-                        </Text>
-                        <Text className="text-gray-800 font-semibold text-sm">
-                          ₦{item.service_price.toLocaleString()}
-                        </Text>
-                      </View>
-                    ))
-                  ) : (
-                    <Text className="text-gray-500 text-sm">
-                      No services listed
-                    </Text>
-                  )}
-                </View>
-
-                {/* Total Price */}
-                <View className="border-t border-gray-200 pt-3 mb-3">
-                  <View className="flex-row justify-between">
-                    <Text className="text-gray-700 font-bold">Total:</Text>
-                    <Text className="text-green-600 font-bold text-lg">
-                      ₦{booking.total_price.toLocaleString()}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Action Buttons */}
-                {booking.status === "pending" && (
-                  <View className="flex-row gap-2">
-                    <TouchableOpacity
-                      onPress={() => handleDecline(booking.id)}
-                      className="flex-1 bg-red-500 py-3 rounded-lg"
-                    >
-                      <Text className="text-white text-center font-semibold">
-                        Decline
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => handleAccept(booking.id)}
-                      className="flex-1 bg-green-500 py-3 rounded-lg"
-                    >
-                      <Text className="text-white text-center font-semibold">
-                        Accept
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-
-                {booking.status === "confirmed" && (
-                  <TouchableOpacity
-                    onPress={() => handleStartService(booking.id)}
-                    className="bg-blue-500 py-3 rounded-lg"
-                  >
-                    <Text className="text-white text-center font-semibold">
-                      Start Service
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                {booking.status === "in_progress" && (
-                  <TouchableOpacity
-                    onPress={() => handleComplete(booking.id)}
-                    className="bg-green-500 py-3 rounded-lg"
-                  >
-                    <Text className="text-white text-center font-semibold">
-                      Mark as Completed
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         ) : (
@@ -436,6 +369,166 @@ const Bookings = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* BOOKING DETAIL MODAL */}
+      <Modal
+        visible={showDetailModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDetailModal(false)}
+      >
+        <View className="flex-1 justify-end bg-black/50 relative">
+          <View className="bg-white rounded-3xl max-h-[85%] absolute top-1/2 -translate-y-1/2 w-full">
+            {selectedBooking && (
+              <>
+                {/* Modal Header */}
+                <View className="flex-row justify-between items-center p-5 border-b border-gray-200">
+                  <Text className="text-xl font-bold">Booking Details</Text>
+                  <TouchableOpacity onPress={() => setShowDetailModal(false)}>
+                    <FontAwesome6 name="xmark" size={24} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView className="flex-1">
+                  {/* Customer Info */}
+                  <View className="p-5 border-b border-gray-100">
+                    <Text className="text-gray-500 text-sm mb-2">Customer</Text>
+                    <View className="flex-row items-center">
+                      <View className="w-12 h-12 rounded-full bg-green-500 items-center justify-center mr-3">
+                        <Text className="text-white text-lg font-bold">
+                          {selectedBooking.customer.full_name
+                            .charAt(0)
+                            .toUpperCase()}
+                        </Text>
+                      </View>
+                      <View>
+                        <Text className="text-lg font-bold text-gray-800">
+                          {selectedBooking.customer.full_name}
+                        </Text>
+                        <Text className="text-gray-500">
+                          {selectedBooking.customer.phone}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Date & Time */}
+                  <View className="p-5 border-b border-gray-100">
+                    <Text className="text-gray-500 text-sm mb-2">
+                      Scheduled For
+                    </Text>
+                    <Text className="text-base font-semibold text-gray-800">
+                      📅 {formatDate(selectedBooking.scheduled_at)}
+                    </Text>
+                    <Text className="text-gray-600 text-sm mt-1">
+                      👥 {selectedBooking.number_of_people}{" "}
+                      {selectedBooking.number_of_people > 1
+                        ? "people"
+                        : "person"}
+                    </Text>
+                  </View>
+
+                  {/* Services */}
+                  <View className="p-5 border-b border-gray-100">
+                    <Text className="text-gray-500 text-sm mb-3">Services</Text>
+                    {selectedBooking.booking_items &&
+                    selectedBooking.booking_items.length > 0 ? (
+                      selectedBooking.booking_items.map((item, index) => (
+                        <View
+                          key={item.id}
+                          className="flex-row justify-between py-2 border-b border-gray-100"
+                        >
+                          <View>
+                            <Text className="text-gray-800 font-semibold">
+                              {item.service_name}
+                            </Text>
+                            <Text className="text-gray-500 text-sm">
+                              Person {item.person_number}
+                            </Text>
+                          </View>
+                          <Text className="text-gray-800 font-semibold">
+                            ₦{item.service_price.toLocaleString()}
+                          </Text>
+                        </View>
+                      ))
+                    ) : (
+                      <Text className="text-gray-500">No services listed</Text>
+                    )}
+                  </View>
+
+                  {/* Total */}
+                  <View className="p-5 bg-gray-50">
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-lg font-bold">Total Amount</Text>
+                      <Text className="text-green-600 font-bold text-2xl">
+                        ₦{selectedBooking.total_price.toLocaleString()}
+                      </Text>
+                    </View>
+                  </View>
+                </ScrollView>
+
+                {/* Action Buttons */}
+                <View className="p-5 border-t border-gray-200">
+                  {selectedBooking.status === "pending" && (
+                    <View className="flex-row gap-3">
+                      <TouchableOpacity
+                        onPress={() => handleDecline(selectedBooking.id)}
+                        className="flex-1 bg-red-500 py-4 rounded-xl"
+                      >
+                        <Text className="text-white text-center font-bold text-base">
+                          Decline
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleAccept(selectedBooking.id)}
+                        className="flex-1 bg-green-500 py-4 rounded-xl"
+                      >
+                        <Text className="text-white text-center font-bold text-base">
+                          Accept
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  {selectedBooking.status === "confirmed" && (
+                    <TouchableOpacity
+                      onPress={() => handleStartService(selectedBooking.id)}
+                      className="bg-blue-500 py-4 rounded-xl"
+                    >
+                      <Text className="text-white text-center font-bold text-base">
+                        Start Service
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {selectedBooking.status === "in_progress" && (
+                    <TouchableOpacity
+                      onPress={() => handleComplete(selectedBooking.id)}
+                      className="bg-green-500 py-4 rounded-xl"
+                    >
+                      <Text className="text-white text-center font-bold text-base">
+                        Mark as Completed
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {(selectedBooking.status === "completed" ||
+                    selectedBooking.status === "cancelled") && (
+                    <TouchableOpacity
+                      onPress={() => setShowDetailModal(false)}
+                      className="bg-gray-200 py-4 rounded-xl"
+                    >
+                      <Text className="text-gray-700 text-center font-bold text-base">
+                        Close
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
